@@ -2,12 +2,247 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>epfo-ecr-generator</title>
+    <meta
+      name="description"
+      content="Generate EPFO ECR text files from employee payroll details."
+    />
+    <title>EPFO ECR Generator</title>
   </head>
+
   <body>
-    <div id="app"></div>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="#" aria-label="EPFO ECR Generator home">
+          <span class="brand-mark">E</span>
+          <span>EPFO <span class="brand-light">ECR Generator</span></span>
+        </a>
+        <span class="local-label">
+          <span class="status-dot"></span>
+          Browser-based tool
+        </span>
+      </header>
+
+      <main>
+        <section class="hero">
+          <p class="eyebrow">PAYROLL WORKFLOW</p>
+          <h1>Make your ECR file.<br /><span>Without the busywork.</span></h1>
+          <p class="hero-description">
+            Enter employee details, review the calculated contributions,
+            and export a text file for your workflow.
+          </p>
+        </section>
+
+        <section class="summary-grid" aria-label="Payroll summary">
+          <article class="summary-card">
+            <p>Total employees</p>
+            <strong id="total-employees">0</strong>
+            <span>Records in this session</span>
+          </article>
+          <article class="summary-card">
+            <p>Total gross wages</p>
+            <strong id="total-wages">₹0</strong>
+            <span>Calculated from days and daily wage</span>
+          </article>
+          <article class="summary-card">
+            <p>Total EPF contribution</p>
+            <strong id="total-epf">₹0</strong>
+            <span>Based on the current calculation logic</span>
+          </article>
+        </section>
+
+        <section class="panel settings-panel">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">01 / SETTINGS</p>
+              <h2>Payroll period</h2>
+            </div>
+            <span class="step-number">01</span>
+          </div>
+
+          <label for="month-days">Days in payroll month</label>
+          <select id="month-days">
+            <option value="28">28 days</option>
+            <option value="29">29 days</option>
+            <option value="30" selected>30 days</option>
+            <option value="31">31 days</option>
+          </select>
+          <p class="field-hint">
+            Choose the month length used to calculate NCP days.
+          </p>
+        </section>
+
+        <section class="panel">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">02 / EMPLOYEE DETAILS</p>
+              <h2>Add an employee</h2>
+              <p class="section-description">
+                Enter the details below to add a record to the payroll table.
+              </p>
+            </div>
+            <span class="step-number">02</span>
+          </div>
+
+          <form id="employee-form">
+            <div class="form-grid">
+              <div class="field">
+                <label for="uan">UAN <span class="required">*</span></label>
+                <input
+                  id="uan"
+                  name="uan"
+                  type="text"
+                  inputmode="numeric"
+                  maxlength="12"
+                  placeholder="12-digit UAN"
+                  autocomplete="off"
+                  required
+                />
+              </div>
+
+              <div class="field">
+                <label for="employee-name">
+                  Employee name <span class="required">*</span>
+                </label>
+                <input
+                  id="employee-name"
+                  name="name"
+                  type="text"
+                  placeholder="Enter employee name"
+                  autocomplete="off"
+                  required
+                />
+              </div>
+
+              <div class="field">
+                <label for="days-worked">
+                  Days worked <span class="required">*</span>
+                </label>
+                <input
+                  id="days-worked"
+                  name="days"
+                  type="number"
+                  min="0"
+                  max="30"
+                  step="1"
+                  placeholder="e.g. 26"
+                  required
+                />
+              </div>
+
+              <div class="field">
+                <label for="daily-wage">
+                  Daily wage (₹) <span class="required">*</span>
+                </label>
+                <input
+                  id="daily-wage"
+                  name="wage"
+                  type="number"
+                  min="0"
+                  step="any"
+                  placeholder="e.g. 500"
+                  required
+                />
+              </div>
+
+              <div class="field">
+                <label for="refund">Refund (₹)</label>
+                <input
+                  id="refund"
+                  name="refund"
+                  type="number"
+                  min="0"
+                  step="any"
+                  value="0"
+                />
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button class="button button-primary" type="submit">
+                <span aria-hidden="true">+</span> Add employee
+              </button>
+              <button class="button button-secondary" id="reset-form" type="button">
+                Reset form
+              </button>
+            </div>
+            <p id="form-message" class="message" role="status" aria-live="polite"></p>
+          </form>
+        </section>
+
+        <section class="panel employee-panel">
+          <div class="section-heading employee-heading">
+            <div>
+              <p class="eyebrow">03 / RECORDS</p>
+              <h2>Employee register</h2>
+              <p class="section-description">
+                Review the records before generating your export.
+              </p>
+            </div>
+            <span class="record-count" id="record-count">0 records</span>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>UAN</th>
+                  <th>Employee</th>
+                  <th>Days</th>
+                  <th>Daily wage</th>
+                  <th>Gross wages</th>
+                  <th>EPF</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="employee-table-body">
+                <tr>
+                  <td colspan="7" class="empty-state">
+                    <span class="empty-icon" aria-hidden="true">↳</span>
+                    <strong>No employee records yet</strong>
+                    <span>Add an employee using the form above.</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="table-footer">
+            <p id="storage-note">Records are stored in this browser.</p>
+            <button class="button button-danger" id="clear-all" type="button">
+              Clear all records
+            </button>
+          </div>
+        </section>
+
+        <section class="export-panel">
+          <div>
+            <p class="eyebrow">04 / EXPORT</p>
+            <h2>Ready to generate your file?</h2>
+            <p>
+              Export the employee records as a plain-text ECR file.
+              Review the output and verify it against current EPFO requirements
+              before uploading.
+            </p>
+          </div>
+          <button class="button button-export" id="export-ecr" type="button">
+            Export ECR .TXT <span aria-hidden="true">↗</span>
+          </button>
+        </section>
+
+        <p class="privacy-note">
+          <strong>Privacy:</strong> This demo stores records in browser
+          storage, which is not encrypted. Avoid entering real employee
+          payroll data into a public demo.
+        </p>
+      </main>
+
+      <footer class="footer">
+        <span>EPFO ECR Generator</span>
+        <span>Simple workflow. Local storage.</span>
+      </footer>
+    </div>
+
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>
